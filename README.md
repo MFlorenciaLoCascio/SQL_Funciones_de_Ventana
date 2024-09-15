@@ -133,6 +133,131 @@ ORDER BY Event ASC, Gender ASC, Year ASC;
 
 Aprenderás tres aplicaciones prácticas de las funciones ventana: obtener valores de distintas partes de la tabla, clasificar filas según sus valores y agrupar filas en distintas tablas.
 
+
+### 1- Búsqueda
+
+#### LEAD: 
+
+Si tienes datos ordenados en el tiempo, puedes hacerlo con la funcion de busqueda LEAD. Esto es especialmente útil si quieres comparar un valor actual con un valor futura.
+
+-- Para cada afo, busca el medallista de aro actual y el medalliata de oro de 3 competicianes anteriores a la fila actual.
+
+```
+WITH Discus_Medalists AS (
+SELECT DISTINCT
+
+Athlete
+FROM Suner_Hedals
+WHERE Medal = 'Gold'
+AND Event = 'Discus Throw"
+AND Gender = 'Women'
+AND Year >= 2000)
+
+SELECT
+-- For each year, fetch the current and future nedalists
+athlete,
+year,
+LEAD(athlete, 3)OVER (ORDER BY year ASC) AS Future_Champion
+FROM Discus_Medalists
+ORDER BY Year ASC;
+```
+
+#### FIRST_VALUE: 
+
+A menudo es útil obtener el primer o el último valor de un conjunto de datos para comparar con el todos los demas valores. Con funciones de obtención absoluta como FIRST_VALUE, puedes obtener un valor en una partición absoluta de la tabla, como su principio o su final.
+
+-- Devuelve todos los atletas y el primer atleta ardenados par orden alfabetico.
+
+```
+WITH ALL_Male_Medalists AS (
+SELECT DISTINCT
+Athlete
+FROM Summer_Medals
+WHERE Medal = 'Gold'
+AND Gender = 'Men')
+
+SELECT
+-- Fetch all athletes and the first athlete alphabetically
+athlete
+FIRST_VALUE(athlete) OVER (
+ORDER BY athlete ASC
+) AS First_Athlete
+FROM ALL_Male_Medalists;
+```
+
+-- Devuelve el año y la ciudad en que se celebraron cada uno de los Juegos Olimpicos y busca la ultima ciudad en la que se celebraron los Juegos Olimpicos.
+
+```
+WITH Hosts AS (
+SELECT DISTINCT Year,
+FROM Sumner_Medals)
+
+SELECT
+Vear
+City,
+-- Get the last city in which the Olympic ganes were held
+LAST_VALUE(city) OVER (
+ORDER BY Year ASC
+RANGE BETWEEN
+UNBOUNDED PRECEDING AND
+UNBOUNDED FOLLOWING
+) AS Last_City
+FROM Hosts
+ORDER BY Year ASC;
+```
+
+### 2- Clasificación
+
+#### RANK() omite numeros en caso de valores identicos.
+
+-- Clasifica a cada atleta por el numero de medallas que ha ganado -cuanto mayor sea el recuento, mayor será la clasificación- con números idénticos en caso de valores idénticos.
+
+```
+WITH Athlete_Medals AS (
+SELECT
+Athlete,
+COUNT (*) AS Medals
+FROM Summer_Medals
+GROUP BY Athlete)
+
+SELECT
+Athlete,
+Medals,
+-- Rank athletes by the medals they've won
+RANK() OVER (ORDER BY medals DESC) AS Rank_N
+FROM Athlete_Medals
+ORDER BY Medals DESC;
+```
+
+#### DENSE_RANK: no omite numeros en caso de valores identicos.
+
+-- Clasifica a los atletas de cada pais por el numero de medallas que han ganado -cuanto mayor sea el numero, mayor sera la clasificación- sin omitir números en caso de valores idénticos. 
+
+```
+WITH Athlete_Medals AS (
+SELECT
+Country, Athlete, COUNT(*) AS Medals
+FROM Summer_Medals
+WHERE
+Country IN ('JPN', 'KOR')
+AND Year >= 2000
+GROUP BY Country, Athlete
+HAVING COUNT(*) > 1)
+
+SELECT
+Country,
+-- Rank athletes in each country by the medals they've won
+Athlete,
+DENSE_RANK() OVER (PARTITION BY country
+ORDER BY Medals DESC) AS Rank_N
+FROM Athlete_Medals
+ORDER BY Country ASC, RANK_N ASC;
+```
+
+
+### 3- Buscapersonas 
+
+
 ## 3️⃣ Funciones y marcos de ventana agregados:
 
 Aprenderás a utilizar funciones agregadas con las que estás familiarizado, como `AVG()` y `SUM()`, como funciones de ventana, así como a definir marcos para cambiar la salida de una función de ventana.
