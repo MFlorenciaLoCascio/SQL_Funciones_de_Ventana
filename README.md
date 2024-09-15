@@ -1,4 +1,4 @@
-# Algunos de los ejercicios del curso de SQL Intermedio de DataCamp 
+# Algunos de los ejercicios del curso de PostgreSQL Summary Stats and Window Functions
 
 Puedes acceder al curso  [aquí](https://app.datacamp.com/learn/courses/postgresql-summary-stats-and-window-functions), tiene una duración de 4 horas, 12 videos y 44 ejercicios. 👩‍💻
 
