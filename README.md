@@ -257,6 +257,42 @@ ORDER BY Country ASC, RANK_N ASC;
 
 ### 3- Buscapersonas 
 
+#### NTILE: 
+
+-- Divide los distintos eventos en exactamente 111 grupos, ordenados por evento en orden alfabético.
+
+```
+WITH Events AS (
+SELECT DISTINCT Event
+FROM Summer_Medals)
+
+SELECT
+--- Split up the distinct events into 111 unique groups
+event,
+NTILE(111) OVER (ORDER BY event ASC) AS Page
+FROM Events
+ORDER BY Event ASC;
+```
+
+#### Tercios superior, medio e inferior Dividir tus datos en tercios o cuartiles suele ser util para comprender como se distribuyen los valores de tu conjunto de datos. Obtener estadisticas resumidas (medias, sumas, desviaciones tipicas, etc.) de los tercios superior, medio e inferior puede ayudarte a determinar que distribucion siguen tus valores.
+
+-- Divide a los atletas en tercios superior, medio e inferior en funcion de su numero de medallas.
+
+```
+WITH Athlete_Medals AS (
+SELECT Athlete, COUNT(*) AS Medals
+FROM Summer_Medals
+GROUP BY Athlete
+HAVING COUNT(*) > 1)
+
+SELECT
+Athlete,
+Medals,
+-- Split athletes into thirds by their earned medals
+NTILE(3) OVER(ORDER BY Medals DESC) AS Third
+FROM Athlete_Medals
+ORDER BY Medals DESC, Athlete ASC;
+```
 
 ## 3️⃣ Funciones y marcos de ventana agregados:
 
