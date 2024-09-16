@@ -298,6 +298,185 @@ ORDER BY Medals DESC, Athlete ASC;
 
 Aprenderás a utilizar funciones agregadas con las que estás familiarizado, como `AVG()` y `SUM()`, como funciones de ventana, así como a definir marcos para cambiar la salida de una función de ventana.
 
+### Funciones de Ventana Agregadas: 
+
+#### El total acumulado (o suma acumulada) de una columna te ayuda a determinar cuál es la contribución de cada fila a la suma total.
+
+-- Devuelve los atletas, el numero de medallas que han conseguido y el total de medallas en carrera, ordenados por los nombres de los atletas en orden alfabético.
+
+```
+WITH Athlete_Medals AS (
+SELECT
+Athlete, COUNT(*) AS Medals
+FROM Summer_Medals
+WHERE
+Country = 'USA' AND Medal = 'Gold'
+AND Year >= 2000
+GROUP BY Athlete)
+
+SELECT
+-- Caloulate the punning total of athlete medals
+Athlete,
+Medals,
+SUM(Medals) OVER (ORDER BY Athlete ASC) AS Max_Medals
+FROM Athlete_Medals
+ORDER BY Athlete ASC;
+```
+
+#### Obtener el máximo
+
+-- Devuelve el año, el pais, las medallas y las medallas maximas conseguidas hasta el momento por cada pais, ordenadas por ano en orden ascendente.
+
+```
+WITH Country_Medals AS (
+SELECT
+Year, Country, COUNT(*) AS Medals
+FROM Summer_Medals
+WHERE
+Country IN ('CHN', 'KOR', 'JPN')
+AND Medal = 'Gold' AND Year >= 2000
+GROUP BY Year, Country)
+
+SELECT
+-- Return the max medals earned so far per country
+Year,
+Country,
+Medals,
+MAX(medals) OVER (PARTITION BY country
+ORDER BY Year ASC) AS Max_Medals
+FROM Country_Medals
+ORDER BY Country ASC, Year ASC;
+```
+
+#### MAX y SUM, funciones agregadas que normalmente se utilizan con GROUP BY, se utilizan como funciones de ventana. También puedes utilizar las otras funciones agregadas, como MIN, como funciones de ventana.
+
+-- Devuelve el año, las medallas conseguidas y el mínimo de medallas conseguidas hasta el momento.
+
+```
+WITH France_Medals AS (
+SELECT
+Year, COUNT(*) AS Medals
+FROM Summer_Medals
+WHERE
+Country = 'FRA'
+AND Medal = 'Gold' AND Year >= 2000
+GROUP BY Year)
+
+SELECT
+Year,
+Medals,
+MIN(Medals) OVER (ORDER BY Year ASC) AS Min_Medals
+FROM France_Medals
+ORDER BY Year ASC;
+```
+
+### Marcos:
+
+Los marcos te permiten restringir las filas pasadas como entrada a tu funcion de ventana a una ventana deslizante para que definas el inicio y el final.
+
+Afadir un marco a tu funcion de ventana te permite calcular metricas "moviles", cuyas entradas se deslizan de fila en fila.
+
+-- Devuelve el año, las medallas ganadas y el maximo de medallas ganadas, comparando sólo el afo actual y el siguiente.
+
+```
+WITH Scandinavian_Medals AS (
+SELECT
+Year, COUNT(*) AS Medals
+FROM Summer_Medals
+WHERE
+Country IN ('DEN', 'NOR', 'FIN', 'SWE', 'ISL ')
+AND Medal = 'Gold'
+GROUP BY Year)
+
+SELECT
+-- Select each year's medals
+year
+medals,
+-- Get the max of the current and next years'
+MAX(medals) OVER (ORDER BY year ASC
+ROWS BETWEEN CURRENT ROW
+AND 1 FOLLOWING) AS Max_Medals
+FROM Scandinavian_Medals
+ORDERY BY Year ASC;
+```
+
+#### LAG, LEAD
+
+Los marcos te permiten "echar un vistazo" hacia delante o hacia atras sin utilizar primero las funciones de obtencion relativa, LAG y LEAD , para obtener los valores de filas anteriores en la fila actual.
+
+-- Devuelve los atletas, las medallas conseguidas y el maximo de medallas conseguidas, comparando solo los dos ultimos y los atletas actuales, ordenados por los nombres de los atletas en orden alfabético.
+
+```
+WITH Chinese_Medals AS (
+SELECT
+Athlete, COUNT(*) AS Medals
+FROM Summer_Medals
+WHERE
+Country = 'CHN' AND Medal = 'Gold'
+AND Year >= 2000
+GROUP BY Athlete)
+
+SELECT
+-- Select the athletes and the medals they've earned
+Athlete,
+medals,
+-- Get the max of the last two and current rows' medals
+MAX(Medals) OVER (ORDER BY Athlete ASC
+ROWS BETWEEN 2 PRECEDING
+AND CURRENT ROW) AS Max_Medals
+FROM Chinese_Medals
+ORDER BY Athlete ASC;
+```
+
+#### Medios móviles y totales
+
+Utilizar marcos con funciones de ventana agregada te permite calcular muchas métricas habituales, como medias móviles y totales. Estas métricas siguen la evolución del rendimiento a lo largo del tiempo.
+
+-- Calcula la media móvil de 3 años de medallas ganadas.
+
+```
+WITH Russian_Medals AS (
+SELECT
+Year, COUNT(*) AS Medals
+FROM Summer_Medals
+WHERE
+Country = 'RUS'
+AND Medal = 'Gold'
+AND Year >= 1980
+GROUP BY Year)
+
+SELECT
+Year, Medals,
+--- Calculate the 3-year moving average of medals earned
+AVG(medals) OVER
+CORDER BY Year ASC
+ROWS BETWEEN
+2 PRECEDING AND CURRENT ROW) AS Medals_MA
+FROM Russian_Medals
+ORDER BY Year ASC;
+```
+
+-- Calcula la suma móvil de 3 años de medallas ganadas por país.
+
+```
+WITH Country_Medals AS (
+SELECT
+Year, Country, COUNT(*) AS Medals
+FROM Summer_Medals
+GROUP BY Year, Country)
+
+SELECT
+Year, Country, Medals,
+-- Calculate each country's 3-game moving total
+SUM(Medals) OVER
+(PARTITION BY country
+ORDER BY Year ASC
+ROWS BETWEEN
+2 PRECEDING AND CURRENT ROW) AS Medals_MA
+FROM Country_Medals
+ORDER BY Country ASC, Year ASC;
+```
+
 ## 4️⃣ Más allá de las funciones de ventana:
 
 Aprenderás algunas técnicas y funciones que son útiles cuando se utilizan junto con las funciones de ventana.
