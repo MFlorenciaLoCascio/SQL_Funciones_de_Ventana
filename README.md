@@ -481,3 +481,127 @@ ORDER BY Country ASC, Year ASC;
 
 Aprenderás algunas técnicas y funciones que son útiles cuando se utilizan junto con las funciones de ventana.
 
+### Pivotante
+
+#### Un pivote básico, Pivótala en Year para obtener la siguiente tabla remodelada y más limpia.
+
+-- Crea la extensión correcta. Rellena los nombres de las columnas de la tabla pivotante.
+
+```
+F- Create the correct extension to enable CROSSTAB
+CREATE EXTENSION IF NOT EXISTS tablefunc;
+
+SELECT * FROM CROSSTABC$$
+SELECT
+Gender, Year, Country
+FROM Summer_Medals
+WHERE
+Year IN (2008, 2012)
+AND Medal = 'Gold'
+AND Event = 'Pole Vault'
+ORDER By Gender ASC, Year ASC;
+-- Fill in the correct column names for the pivoted table
+$$) AS ct (Gender VARCHAR,
+"2008" VARCHAR,
+"2012" VARCHAR)
+
+ORDER BY Gender ASC;
+```
+
+#### Pivotar con clasificacion
+
+-- Cuenta las medallas de oro que han ganado Francia (FRA), el Reino Unido (GBR) y Alemania (GER) por país y año.
+
+```
+-- Count the gold medals per country and year
+SELECT
+Country,
+Year.
+Count(*) AS Awards
+FROM Summer_Medals
+WHERE
+Country IN ('FRA', 'GBR', 'GER')
+AND Year IN (2004, 2008, 2012)
+AND Medal = 'Gold'
+GROUP BY country, year
+ORDER BY Country ASC, Year ASC
+```
+
+### ROLLUP y CUBE
+
+-- Cuenta las medallas de oro concedidas por pais y sexo. Genera recuentos de premios de oro de nivel Country.
+
+```
+-- Count the gold medals per country and gender
+SELECT
+country,
+gender
+COUNT(*) AS Gold_Awards
+FROM Summer_Medals
+WHERE
+Year = 2004
+AND Medal = 'Gold'
+AND Country IN ('DEN', 'NOR', 'SWE')
+-- Generate Country-Level subtotals
+GROUP BY Country, ROLLUP(Gender)
+ORDER BY Country ASC, Gender ASC;
+```
+
+-- Cuenta las medallas concedidas por sexo y tipo de medalla. Genera todos los recuentos posibles a nivel de grupo (subtotales por sexo y tipo de medalla y el total general).
+
+```
+-- Count the medals per gender and medal type
+SELECT
+gender,
+medal,
+Count(*) AS Awards
+FROM Summer_Medals
+WHERE
+Year = 2012
+AND Country = 'RUS'
+-- Get all possible group-level subtotals
+GROUP BY CUBE(Gender, Medal)
+ORDER BY Gender ASC, Medal ASC;
+```
+
+#### Limpiar los resultados
+Volviendo al desglose de los premios escandinavos que hiciste anteriormente, quieres limpiar los resultados sustituyendo las nuLl s por texto con sentido.
+
+-- Convierte los nuLl s de la columna Country en ALL countries , y los nuLl s de la columna Gender en ALL genders.
+
+```
+SELECT
+-- Replace the nulls in the columns with meaningful text
+COALESCE(Country, 'All countries') AS Country,
+COALESCE(Gender, 'All genders') AS Gender,
+COUNT(*) AS Awards
+FROM Summer_Medals
+WHERE
+Year = 2004
+AND Medal = 'Gold'
+AND Country IN ('DEN', 'NOR', 'SWE')
+GROUP BY ROLLUP(Country, Gender)
+ORDER BY Country ASC, Gender ASC;
+```
+
+#### Resumir los resultados
+
+-- Clasifica los paises segun las medallas que se les han concedido.
+
+```
+WITH Country_Medals AS (
+SELECT
+Country,
+COUNT(*) AS Medals
+FROM Summer_Medals
+WHERE Year = 2000
+AND Medal = 'Gold'
+GROUP BY Country)
+
+SELECT
+Country,
+-- Rank countries by the medals awarded
+RANK() OVER (ORDER BY Medals DESC) AS Rank
+FROM Country_Medals
+ORDER BY Rank ASC;
+```
