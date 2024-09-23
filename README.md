@@ -4,6 +4,16 @@ Puedes acceder al curso  [aquí](https://app.datacamp.com/learn/courses/postgres
 
 Certificado  [aquí](https://www.datacamp.com/completed/statement-of-accomplishment/course/d29991f7096b83f70bd19aa9df980f6f9595d27e)
 
+🔖 Puede seguir la ruta de los cursos en el siguiente orden: 
+
+1- [SQL_Intermedio](https://github.com/MFlorenciaLoCascio/SQL_Intermedio)
+
+2- [Unión de Datos](https://github.com/MFlorenciaLoCascio/SQL_Union_de_Datos) 
+
+3- [Manipulación de Datos](https://github.com/MFlorenciaLoCascio/SQL_Manipulacion_de_Datos) 
+
+4- [Resumen de estadísticas y funciones de ventana](https://github.com/MFlorenciaLoCascio/SQL_Funciones_de_Ventana) Aquí esta ahora
+
 ## Descripción del curso:
 
 Aprenderás a crear consultas para análisis e ingeniería de datos con funciones de ventana, ¡el arma secreta de SQL! Utilizando datos de vuelos, descubrirás lo sencillo que es utilizar las funciones de ventana, y lo flexibles y eficaces que son.
